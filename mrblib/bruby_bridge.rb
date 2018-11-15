@@ -1,0 +1,2 @@
+module BRubyBridge
+end

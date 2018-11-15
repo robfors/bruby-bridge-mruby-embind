@@ -1,0 +1,7 @@
+ESRuby::Gem::Specification.new do |spec|
+
+  spec.add_appended_js_source "#{File.dirname(__FILE__)}/js/bruby_bridge.js"
+  spec.add_appended_js_source "#{File.dirname(__FILE__)}/js/bruby_bridge/js_interface.js"
+  spec.add_appended_js_source "#{File.dirname(__FILE__)}/js/bruby_bridge/rb_interface.js"
+
+end

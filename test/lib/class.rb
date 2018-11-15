@@ -1,0 +1,15 @@
+test("Class#bruby_bridge_rb_interface__backward_reference_restriction")
+class A
+end
+A.bruby_bridge_rb_interface__backward_reference_restriction = 2
+String.bruby_bridge_rb_interface__backward_reference_restriction = 3
+Integer.bruby_bridge_rb_interface__backward_reference_restriction = 4
+ensure_result(A.bruby_bridge_rb_interface__backward_reference_restriction == 2)
+ensure_result(String.bruby_bridge_rb_interface__backward_reference_restriction == 3)
+ensure_result(Integer.bruby_bridge_rb_interface__backward_reference_restriction == 4)
+A.bruby_bridge_rb_interface__backward_reference_restriction = nil
+String.bruby_bridge_rb_interface__backward_reference_restriction = nil
+Integer.bruby_bridge_rb_interface__backward_reference_restriction = nil
+ensure_result(A.bruby_bridge_rb_interface__backward_reference_restriction == nil)
+ensure_result(String.bruby_bridge_rb_interface__backward_reference_restriction == nil)
+ensure_result(Integer.bruby_bridge_rb_interface__backward_reference_restriction == nil)

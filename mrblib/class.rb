@@ -1,0 +1,3 @@
+class Class
+  attr_accessor :bruby_bridge_rb_interface__backward_reference_restriction
+end

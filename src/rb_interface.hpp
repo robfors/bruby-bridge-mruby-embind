@@ -23,6 +23,8 @@
 
 namespace BRubyBridge
 {  
+  // RbInterface js instances point to a rb object
+  // we can use them to call send on the rb object
   class RbInterface
   {
 

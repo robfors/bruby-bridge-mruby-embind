@@ -21,6 +21,8 @@
 
 namespace BRubyBridge
 {
+  // RbWeakReference exposes a weak reference of a rb object to js
+  // we can use them set backward references to JSInterfaces
   class RbWeakReference
   {
   

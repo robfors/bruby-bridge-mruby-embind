@@ -11,38 +11,30 @@ namespace BRubyBridge
   {
 
     RClass* class_mrb;
+    
     val js_class = val::undefined();
 
-    // private
+    // private api
     struct mrb_data_type _internal_data_type = {"BRubyBridge::JSInterface", gc_callback};
     
-    // private
+    // private api
     val _backward_reference_key = val::undefined();
 
 
-    // private
     mrb_value build(val object_js)
     {
       mrb_value js_interface;
       bool is_not_primitive = object_js.instanceof(val::global("Object"));
-      printf("is_not_primitive%d\n", is_not_primitive);
       if (is_not_primitive && _backward_reference_key.in(object_js))
       {
         js_interface = object_js[_backward_reference_key].as<RbWeakReference>().get_object();
-        printf("jsv existing %p\n", (void *)mrb_ptr(js_interface));
-        val::global("vvvv").call<void>("push", val("existing"));
-        val::global("vvvv").call<void>("push", object_js);
         return js_interface;
       }
       js_interface = mrb_obj_new(mrb, class_mrb, 0, NULL);
-      printf("jsv new      %p\n", (void *)mrb_ptr(js_interface));
-      val::global("vvvv").call<void>("push", val("new"));
-      val::global("vvvv").call<void>("push", object_js);
-
+      
       // set up forward reference
       //   (rb:JSInterface -> c:mrb_value -> cpp:val -> js:object)
       val* object_js_ptr = (val*)mrb_malloc(mrb, sizeof(val));
-      printf("jsv new object_js_ptr %p\n", (void*)object_js_ptr);
       if (object_js_ptr == nullptr)
         BRubyBridge::js_class["OutOfMemoryError"].new_().throw_();
       new (object_js_ptr) val(object_js);
@@ -53,21 +45,15 @@ namespace BRubyBridge
       if (is_not_primitive)
       {
         RbWeakReference backward_reference = RbWeakReference(js_interface);
-        val br = val(backward_reference);
-        val::global("jjjj").call<void>("push", object_js);
-        val::global("gggg").call<void>("push", br);
-        object_js.set(_backward_reference_key, br);
+        object_js.set(_backward_reference_key, backward_reference);
       }
 
       return js_interface;
     }
 
 
-    // public api
     mrb_value call(mrb_state* mrb, mrb_value js_interface)
     {
-      printf("jsv call start\n");
-      printf("jsv call     %p\n", (void*)mrb_ptr(js_interface));
       mrb_value key_rb;
       mrb_value* arguments_rb;
       mrb_int arguments_rb_count;
@@ -101,39 +87,29 @@ namespace BRubyBridge
         return_rb = RbInterface::get_mrb_value(return_js);
       else
         return_rb = build(return_js);
-      printf("jsv call end\n");
       return return_rb;
     }
 
 
-    // private
     void gc_callback(mrb_state* mrb, void* ptr)
     {
-      printf("jsv gc start\n");
       val* object_js_ptr = (val*)ptr;
-      printf("jsv gc  object_js_ptr %p\n", (void*)object_js_ptr);
       if (object_js_ptr == nullptr)
        abort("no val found in JSInterface, was ::new called directly?");
       bool is_not_primitive = object_js_ptr->instanceof(val::global("Object"));
       if (is_not_primitive)
       {
-        mrb_value js_interface = (*object_js_ptr)[_backward_reference_key].as<RbWeakReference>().get_object();
-        printf("jsv gc       %p\n", (void*)mrb_ptr(js_interface));
-        val::global("vvvv").call<void>("push", val("gc"));
-        val::global("vvvv").call<void>("push", *object_js_ptr);
+        // clear the backward reference the js object won't point to a stale JSInterface object
         object_js_ptr->delete_(_backward_reference_key);
       }
       (*object_js_ptr) = val::undefined();
       object_js_ptr->~val();
       mrb_free(mrb, object_js_ptr);
-      printf("jsv gc end\n");
     }
 
 
-    // public api
     mrb_value get(mrb_state* mrb, mrb_value js_interface)
     {
-      printf("jsv get      %p\n", (void*)mrb_ptr(js_interface));
       mrb_value key_rb;
       mrb_get_args(mrb, "o", &key_rb);
       
@@ -156,7 +132,6 @@ namespace BRubyBridge
     }
 
 
-    // private
     val get_val(mrb_value js_interface)
     {
       if (!mrb_obj_is_kind_of(mrb, js_interface, class_mrb))
@@ -164,21 +139,19 @@ namespace BRubyBridge
       val* object_js_ptr = (val*)mrb_data_get_ptr(mrb, js_interface, &_internal_data_type);
       if (object_js_ptr == nullptr)
         abort("no val found in JSInterface, was ::new called directly?");
-      printf("jsv get object_js_ptr %p\n", (void*)object_js_ptr);
       return val(*object_js_ptr);
     }
 
 
-    // public api
     mrb_value global(mrb_state* mrb, mrb_value js_interface_class)
     {
       return build(val::global());
     }
 
 
-    // private
     mrb_value initialize(mrb_state* mrb, mrb_value js_interface)
     {
+      // clear any existing data
       val* object_js_ptr = (val*)mrb_data_get_ptr(mrb, js_interface, &_internal_data_type);
       if (object_js_ptr != nullptr)
       {
@@ -189,7 +162,6 @@ namespace BRubyBridge
     }
 
 
-    // public api
     mrb_value number(mrb_state* mrb, mrb_value js_interface_class)
     {
       mrb_value number_rb;
@@ -214,7 +186,7 @@ namespace BRubyBridge
       RClass* parent_module_mrb = BRubyBridge::module_mrb;
       class_mrb = mrb_define_class_under(mrb, parent_module_mrb, "JSInterface", mrb->object_class);
       MRB_SET_INSTANCE_TT(class_mrb, MRB_TT_DATA);
-      // mrb_undef_class_method(mrb,  class_mrb, "new"); will it work?
+      // mrb_undef_class_method(mrb,  class_mrb, "new"); (note to self) test this later
       mrb_define_class_method(mrb, class_mrb, "global", global, MRB_ARGS_NONE());
       mrb_define_class_method(mrb, class_mrb, "initialize", initialize, MRB_ARGS_NONE());
       mrb_define_class_method(mrb, class_mrb, "number", number, MRB_ARGS_REQ(1));
@@ -227,7 +199,6 @@ namespace BRubyBridge
     }
 
 
-    // public api
     mrb_value string_(mrb_state* mrb, mrb_value js_interface_class)
     {
       mrb_value string_rb;
@@ -248,7 +219,6 @@ namespace BRubyBridge
     }
     
 
-    // public api
     mrb_value to_boolean(mrb_state* mrb, mrb_value js_interface)
     {
       val object_js = get_val(js_interface);
@@ -258,7 +228,6 @@ namespace BRubyBridge
     }
     
 
-    // public api
     mrb_value to_float(mrb_state* mrb, mrb_value js_interface)
     {
       val object_js = get_val(js_interface);
@@ -270,7 +239,6 @@ namespace BRubyBridge
     }
 
 
-    // public api
     mrb_value to_string(mrb_state* mrb, mrb_value js_interface)
     {
       val object_js = get_val(js_interface);

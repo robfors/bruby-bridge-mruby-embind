@@ -22,6 +22,8 @@
 
 namespace BRubyBridge
 {
+  // JSReference exposes a reference (hopefully one day, weak) of a js object to rb
+  // we can use them set backward references to RbInterfaces
   namespace JSReference
   {
     extern RClass* class_mrb;

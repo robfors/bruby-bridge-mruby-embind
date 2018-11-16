@@ -41,7 +41,7 @@ namespace BRubyBridge
 
     // points to the js BRubyBridge.JSInterface class
     // public api
-    extern val js_class;
+    extern emscripten::val js_class;
     
     // get a JSInterface for a js object
     // if a JSInterface already exists the js object that that JSInterface will be returned

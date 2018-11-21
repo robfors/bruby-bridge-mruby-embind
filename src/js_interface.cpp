@@ -152,12 +152,12 @@ namespace BRubyBridge
     mrb_value initialize(mrb_state* mrb, mrb_value js_interface)
     {
       // clear any existing data
-      val* object_js_ptr = (val*)mrb_data_get_ptr(mrb, js_interface, &_internal_data_type);
-      if (object_js_ptr != nullptr)
-      {
-        mrb_free(mrb, object_js_ptr);
-        mrb_data_init(js_interface, nullptr, &_internal_data_type);
-      }
+      //val* object_js_ptr = (val*)mrb_data_get_ptr(mrb, js_interface, &_internal_data_type);
+      //if (object_js_ptr != nullptr)
+      //{
+      //  mrb_free(mrb, object_js_ptr);
+      //  mrb_data_init(js_interface, nullptr, &_internal_data_type);
+      //}
       return js_interface;
     }
 
@@ -188,7 +188,7 @@ namespace BRubyBridge
       MRB_SET_INSTANCE_TT(class_mrb, MRB_TT_DATA);
       // mrb_undef_class_method(mrb,  class_mrb, "new"); (note to self) test this later
       mrb_define_class_method(mrb, class_mrb, "global", global, MRB_ARGS_NONE());
-      mrb_define_class_method(mrb, class_mrb, "initialize", initialize, MRB_ARGS_NONE());
+      mrb_define_method(mrb, class_mrb, "initialize", initialize, MRB_ARGS_NONE());
       mrb_define_class_method(mrb, class_mrb, "number", number, MRB_ARGS_REQ(1));
       mrb_define_class_method(mrb, class_mrb, "string", string_, MRB_ARGS_OPT(1));
       mrb_define_method(mrb, class_mrb, "call", call, MRB_ARGS_REQ(1)|MRB_ARGS_REST());

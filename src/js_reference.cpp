@@ -61,7 +61,7 @@ namespace BRubyBridge
     mrb_value initialize(mrb_state* mrb, mrb_value js_reference)
     {
       // to avoid memory leaks
-      clear(js_reference);
+      //clear(js_reference);
       return js_reference;
     }
     
@@ -88,7 +88,7 @@ namespace BRubyBridge
       RClass* parent_module_mrb = BRubyBridge::module_mrb;
       class_mrb = mrb_define_class_under(mrb, parent_module_mrb, "JSReference", mrb->object_class);
       MRB_SET_INSTANCE_TT(class_mrb, MRB_TT_DATA);
-      mrb_define_class_method(mrb, class_mrb, "initialize", initialize, MRB_ARGS_NONE());
+      mrb_define_method(mrb, class_mrb, "initialize", initialize, MRB_ARGS_NONE());
     }
     
   }

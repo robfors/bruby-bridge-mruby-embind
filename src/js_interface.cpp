@@ -12,6 +12,7 @@ namespace BRubyBridge
 
     RClass* class_mrb;
     val js_class = val::undefined();
+    mrb_value array;
 
     // private
     struct mrb_data_type _internal_data_type = {"BRubyBridge::JSInterface", gc_callback};
@@ -35,6 +36,7 @@ namespace BRubyBridge
         return js_interface;
       }
       js_interface = mrb_obj_new(mrb, class_mrb, 0, NULL);
+      mrb_ary_push(mrb, array, js_interface);
       printf("jsv new      %p\n", (void *)mrb_ptr(js_interface));
       val::global("vvvv").call<void>("push", val("new"));
       val::global("vvvv").call<void>("push", object_js);
@@ -205,6 +207,7 @@ namespace BRubyBridge
     
     void setup()
     {
+      array = mrb_ary_new(mrb);
       //_backward_reference_key = val::global().call<val>("Symbol");
       // for debug purposes we will use a string
       _backward_reference_key = val("_backward_reference_key");

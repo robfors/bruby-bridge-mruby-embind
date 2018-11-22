@@ -30,7 +30,6 @@ namespace BRubyBridge
         js_interface = object_js[_backward_reference_key].as<RbWeakReference>().get_object();
         return js_interface;
       }
-      js_interface = mrb_obj_new(mrb, class_mrb, 0, NULL);
       
       // set up forward reference
       //   (rb:JSInterface -> c:mrb_value -> cpp:val -> js:object)
@@ -38,7 +37,7 @@ namespace BRubyBridge
       if (object_js_ptr == nullptr)
         BRubyBridge::js_class["OutOfMemoryError"].new_().throw_();
       new (object_js_ptr) val(object_js);
-      mrb_data_init(js_interface, object_js_ptr, &_internal_data_type);
+      js_interface = mrb_obj_value(Data_Wrap_Struct(mrb, class_mrb, &_internal_data_type, object_js_ptr));
       
       // set up backward reference
       //    (js:object -> js:RbWeakReference -> c:mrb_value -> rb:JSInterface)
@@ -151,13 +150,11 @@ namespace BRubyBridge
 
     mrb_value initialize(mrb_state* mrb, mrb_value js_interface)
     {
-      // clear any existing data
-      //val* object_js_ptr = (val*)mrb_data_get_ptr(mrb, js_interface, &_internal_data_type);
-      //if (object_js_ptr != nullptr)
-      //{
-      //  mrb_free(mrb, object_js_ptr);
-      //  mrb_data_init(js_interface, nullptr, &_internal_data_type);
-      //}
+      val* object_js_ptr = (val*)DATA_PTR(js_interface);
+      if (object_js_ptr != nullptr)
+        mrb_free(mrb, object_js_ptr);
+      mrb_data_init(js_interface, nullptr, &_internal_data_type);
+      
       return js_interface;
     }
 
